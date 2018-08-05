@@ -510,7 +510,7 @@ void GlobalBundleAdjustor::PushCameraPriorMotion(const int iFrm, const int iKF, 
 }
 
 void GlobalBundleAdjustor::Run() {
-  PROFILE_FUNCTION(__PRETTY_FUNCTION__);
+  PROFILE_FUNCTION("Run GBA        ");
 #if 0
 //#if 1
   AssertConsistency();

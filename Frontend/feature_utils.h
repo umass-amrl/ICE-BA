@@ -274,7 +274,7 @@ class FeatureTrackDetector {
   };
 
   void build_img_pyramids(const cv::Mat& img_in_smooth, int build_type = BUILD_TO_CURR) {
-    PROFILE_FUNCTION(__PRETTY_FUNCTION__);
+    PROFILE_FUNCTION("Image pyramids ");
     if (build_type == BUILD_TO_CURR) {
       build_pyramids(img_in_smooth, kMaxPyraLevelOF,
                      &curr_img_pyramids_, curr_pyramids_buffer_.get());

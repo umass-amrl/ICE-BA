@@ -375,7 +375,7 @@ void LocalBundleAdjustor::GetCamera(FRM::Tag &T, Camera &C) {
 }
 
 void LocalBundleAdjustor::Run() {
-  PROFILE_FUNCTION(__PRETTY_FUNCTION__);
+  PROFILE_FUNCTION("Run LBA        ");
 //#ifdef CFG_DEBUG
 #if 0
 //#if 1

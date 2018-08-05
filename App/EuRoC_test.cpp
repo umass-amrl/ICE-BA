@@ -471,18 +471,18 @@ int main(int argc, char** argv) {
   std::vector<cv::KeyPoint> pre_image_key_points;
   cv::Mat pre_image_features;
   for (int it_img = FLAGS_start_idx; it_img < FLAGS_end_idx; ++it_img) {
-    PROFILE_FUNCTION("per-frame total")
+    PROFILE_FUNCTION("Per-frame total")
     VLOG(0) << " start detection at ts = " << fs::path(img_file_paths[it_img]).stem().string();
     cv::Mat img_in_raw;
     {
-      PROFILE_FUNCTION("Image read");
+      PROFILE_FUNCTION("Image read     ")
       img_in_raw = cv::imread(img_file_paths[it_img], CV_LOAD_IMAGE_GRAYSCALE);
       CHECK_EQ(img_in_raw.rows, duo_calib_param.Camera.img_size.height);
       CHECK_EQ(img_in_raw.cols, duo_calib_param.Camera.img_size.width);
     }
     cv::Mat img_in_smooth;
     {
-      PROFILE_FUNCTION("Image blur");
+      PROFILE_FUNCTION("Image blur     ")
       cv::blur(img_in_raw, img_in_smooth, cv::Size(3, 3));
     }
     if (img_in_smooth.rows == 0) {
@@ -519,7 +519,7 @@ int main(int argc, char** argv) {
     }
 
     {
-      PROFILE_FUNCTION("Slave image read");
+      PROFILE_FUNCTION("Slave read+blur");
       if (!slave_img_file_paths.empty()) {
         if (!slave_img_file_paths[it_img].empty()) {
           cv::Mat slave_img_in;
@@ -534,11 +534,8 @@ int main(int argc, char** argv) {
       CHECK(it_img >= 1);
       VLOG(1) << "pre_image_key_points.size(): " << pre_image_key_points.size();
       const int request_feat_num = FLAGS_max_num_per_grid * FLAGS_grid_row_num * FLAGS_grid_col_num;
-      {
-        PROFILE_FUNCTION("Build image pyramids");
-        feat_track_detector.build_img_pyramids(
-            img_in_smooth, XP::FeatureTrackDetector::BUILD_TO_CURR);
-      }
+      feat_track_detector.build_img_pyramids(
+          img_in_smooth, XP::FeatureTrackDetector::BUILD_TO_CURR);
       if (imu_meas.size() > 1) {
         // Here we simply the transformation chain to rotation only and assume zero translation
         cv::Matx33f old_R_new;

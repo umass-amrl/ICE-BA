@@ -785,7 +785,7 @@ bool FeatureTrackDetector::detect(const cv::Mat& img_in_smooth,
                                   int fast_thresh,
                                   std::vector<cv::KeyPoint>* key_pnts_ptr,
                                   cv::Mat* orb_feat_ptr) {
-  PROFILE_FUNCTION(__PRETTY_FUNCTION__);
+  PROFILE_FUNCTION("Feature detect ");
   return XP::detect_orb_features(img_in_smooth,
                                  mask,
                                  request_feat_num,
@@ -814,7 +814,7 @@ bool FeatureTrackDetector::optical_flow_and_detect(const cv::Mat_<uchar>& mask,
                                                    const cv::Mat_<float>* dist_ptr,
                                                    const cv::Matx33f* old_R_new_ptr,
                                                    const bool absolute_static) {
-  PROFILE_FUNCTION(__PRETTY_FUNCTION__);
+  PROFILE_FUNCTION("Optical flow   ");
   // Mark all feature tracks dead first!
   if (prev_img_kpts.size() != this->feature_tracks_number()) {
     LOG(ERROR) << "Inconsistent prev keypoints (" << prev_img_kpts.size()
