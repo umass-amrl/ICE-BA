@@ -206,6 +206,7 @@ class FeatureTrackDetector {
                                const cv::Matx33f* old_R_new_ptr = nullptr,
                                const bool absolute_static = false);
   void update_img_pyramids() {
+    PROFILE_FUNCTION("Update pyramids");
     curr_img_pyramids_.swap(prev_img_pyramids_);
     curr_pyramids_buffer_.swap(prev_pyramids_buffer_);
   }

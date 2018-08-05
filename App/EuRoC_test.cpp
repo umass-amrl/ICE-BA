@@ -57,6 +57,7 @@ DEFINE_double(max_feature_distance_over_baseline_ratio,
               3000, "Used for slave image feature detection");
 DEFINE_string(iba_param_path, "", "iba parameters path");
 DEFINE_string(gba_camera_save_path, "", "Save the camera states to when finished");
+DEFINE_bool(visualize, true, "Whether or not to show the visualization");
 
 size_t load_image_data(const string& image_folder,
                        std::vector<string> &limg_name,
@@ -255,7 +256,7 @@ bool create_iba_frame(const vector<cv::KeyPoint>& kps_l,
   CHECK(std::is_sorted(kps_l.begin(), kps_l.end(), cmp_by_class_id));
   CHECK(std::is_sorted(kps_r.begin(), kps_r.end(), cmp_by_class_id));
   CHECK(std::includes(kps_l.begin(), kps_l.end(), kps_r.begin(), kps_r.end(), cmp_by_class_id));
-
+  PROFILE_FUNCTION("Create IBA     ");
   // IBA will handle *unknown* initial depth values
   IBA::Depth kUnknownDepth;
   kUnknownDepth.d = 0.0f;
@@ -437,33 +438,36 @@ int main(int argc, char** argv) {
                 257,
                 FLAGS_iba_param_path,
                 "" /* iba directory */);
-  solver.SetCallbackLBA([&](const int iFrm, const float ts) {
+  if (FLAGS_visualize) {
+    solver.SetCallbackLBA([&](const int iFrm, const float ts) {
 #ifndef __DUO_VIO_TRACKER_NO_DEBUG__
-    VLOG(1) << "===== start ibaCallback at ts = " << ts;
+      VLOG(1) << "===== start ibaCallback at ts = " << ts;
 #endif
-    // as we may be able to send out information directly in the callback arguments
-    IBA::SlidingWindow sliding_window;
-    solver.GetSlidingWindow(&sliding_window);
-    const IBA::CameraIMUState& X = sliding_window.CsLF.back();
-    const IBA::CameraPose& C = X.C;
-    Eigen::Matrix4f W_vio_T_S = Eigen::Matrix4f::Identity();  // W_vio_T_S
-    for (int i = 0; i < 3; ++i) {
-      W_vio_T_S(i, 3) = C.p[i];
-      for (int j = 0; j < 3; ++j) {
-        W_vio_T_S(i, j) = C.R[j][i];  // C.R is actually R_SW
+      // as we may be able to send out information directly in the callback
+      // arguments
+      IBA::SlidingWindow sliding_window;
+      solver.GetSlidingWindow(&sliding_window);
+      const IBA::CameraIMUState& X = sliding_window.CsLF.back();
+      const IBA::CameraPose& C = X.C;
+      Eigen::Matrix4f W_vio_T_S = Eigen::Matrix4f::Identity();  // W_vio_T_S
+      for (int i = 0; i < 3; ++i) {
+        W_vio_T_S(i, 3) = C.p[i];
+        for (int j = 0; j < 3; ++j) {
+          W_vio_T_S(i, j) = C.R[j][i];  // C.R is actually R_SW
+        }
       }
-    }
-    Eigen::Matrix<float, 9, 1> speed_and_biases;
-    for (int i = 0; i < 3; ++i) {
-      speed_and_biases(i) = X.v[i];
-      speed_and_biases(i + 3) = X.ba[i];
-      speed_and_biases(i + 6) = X.bw[i];
-    }
-    Eigen::Vector3f cur_position = W_vio_T_S.topRightCorner(3, 1);
-    travel_dist += (cur_position - last_position).norm();
-    last_position = cur_position;
-    pose_viewer.addPose(W_vio_T_S, speed_and_biases, travel_dist);
-  });
+      Eigen::Matrix<float, 9, 1> speed_and_biases;
+      for (int i = 0; i < 3; ++i) {
+        speed_and_biases(i) = X.v[i];
+        speed_and_biases(i + 3) = X.ba[i];
+        speed_and_biases(i + 6) = X.bw[i];
+      }
+      Eigen::Vector3f cur_position = W_vio_T_S.topRightCorner(3, 1);
+      travel_dist += (cur_position - last_position).norm();
+      last_position = cur_position;
+      pose_viewer.addPose(W_vio_T_S, speed_and_biases, travel_dist);
+    });
+  }
   solver.Start();
 
   float prev_time_stamp = 0.0f;
@@ -629,9 +633,11 @@ int main(int argc, char** argv) {
     solver.PushCurrentFrame(CF, KF.iFrm == -1 ? nullptr : &KF);
     pre_image_key_points = key_pnts;
     pre_image_features = orb_feat.clone();
-    // show pose
-    pose_viewer.displayTo("trajectory");
-    cv::waitKey(1);
+    if (FLAGS_visualize) {
+      // show pose
+      pose_viewer.displayTo("trajectory");
+      cv::waitKey(1);
+    }
 
     prev_time_stamp = time_stamp;
   }
