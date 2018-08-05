@@ -641,6 +641,10 @@ int main(int argc, char** argv) {
   solver.Destroy();
 
   // for comparsion with asl groundtruth
-  convert_to_asl_timestamp(temp_file, FLAGS_gba_camera_save_path, offset_ts_ns);
+  if (FLAGS_gba_camera_save_path.length() > 0) {
+    convert_to_asl_timestamp(temp_file,
+                             FLAGS_gba_camera_save_path,
+                             offset_ts_ns);
+  }
   return 0;
 }
