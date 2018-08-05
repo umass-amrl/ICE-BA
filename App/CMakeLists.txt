@@ -12,4 +12,5 @@ add_executable(ice_ba
 target_link_libraries(ice_ba
     IBA
     OF
+    UTIL
 )

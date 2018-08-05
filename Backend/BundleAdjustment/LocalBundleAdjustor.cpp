@@ -21,6 +21,7 @@
 #include "GlobalBundleAdjustor.h"
 #include "IBA_internal.h"
 #include "Vector12.h"
+#include "Util/timer.h"
 
 #ifdef CFG_DEBUG
 #ifdef CFG_DEBUG_EIGEN
@@ -374,6 +375,7 @@ void LocalBundleAdjustor::GetCamera(FRM::Tag &T, Camera &C) {
 }
 
 void LocalBundleAdjustor::Run() {
+  PROFILE_FUNCTION(__PRETTY_FUNCTION__);
 //#ifdef CFG_DEBUG
 #if 0
 //#if 1
@@ -2095,7 +2097,7 @@ void LocalBundleAdjustor::MarginalizeLocalFrame() {
     const Rigid3D &Tr = m_CsKF[iKFr];
     const float s2r = m_Zp.Pose::Valid() ? BA_VARIANCE_PRIOR_ROTATION : BA_VARIANCE_PRIOR_ROTATION_INITIAL;
     m_Zp.Initialize(BA_WEIGHT_PRIOR_CAMERA_INITIAL, iKFr, Tr, s2r, m_ZpLF, true);
-    
+
     Camera C1;
     C1.m_T = Tr;
     Tr.GetPosition(C1.m_p);
@@ -2610,7 +2612,7 @@ void LocalBundleAdjustor::PushLocalFrame(const InputLocalFrame &ILF) {
     MarkFeatureMeasurementsUpdateDepth(LF, m_ucsKFGT, m_udsGT);
   }
 #endif
-  if (LF.m_T.m_iFrm == 0) {    
+  if (LF.m_T.m_iFrm == 0) {
     const LA::Vector3f s2r = LA::Vector3f::Get(BA_VARIANCE_FIX_ORIGIN_ROTATION_X,
                                                BA_VARIANCE_FIX_ORIGIN_ROTATION_Y,
                                                BA_VARIANCE_FIX_ORIGIN_ROTATION_Z);

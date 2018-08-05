@@ -254,6 +254,7 @@ target_link_libraries(IBA
  ${GLOG_LIBRARIES}
  ${X11_LIBRARIES}
  pthread
+ UTIL
 )
 
 # =========================

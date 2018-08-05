@@ -21,6 +21,7 @@
 #include "basic_datatype.h"
 #include "iba_helper.h"
 #include "pose_viewer.h"
+#include "Util/timer.h"
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
 #include <glog/logging.h>
@@ -470,14 +471,20 @@ int main(int argc, char** argv) {
   std::vector<cv::KeyPoint> pre_image_key_points;
   cv::Mat pre_image_features;
   for (int it_img = FLAGS_start_idx; it_img < FLAGS_end_idx; ++it_img) {
+    PROFILE_FUNCTION("per-frame total")
     VLOG(0) << " start detection at ts = " << fs::path(img_file_paths[it_img]).stem().string();
-    auto read_img_start = std::chrono::high_resolution_clock::now();
     cv::Mat img_in_raw;
-    img_in_raw = cv::imread(img_file_paths[it_img], CV_LOAD_IMAGE_GRAYSCALE);
-    CHECK_EQ(img_in_raw.rows, duo_calib_param.Camera.img_size.height);
-    CHECK_EQ(img_in_raw.cols, duo_calib_param.Camera.img_size.width);
+    {
+      PROFILE_FUNCTION("Image read");
+      img_in_raw = cv::imread(img_file_paths[it_img], CV_LOAD_IMAGE_GRAYSCALE);
+      CHECK_EQ(img_in_raw.rows, duo_calib_param.Camera.img_size.height);
+      CHECK_EQ(img_in_raw.cols, duo_calib_param.Camera.img_size.width);
+    }
     cv::Mat img_in_smooth;
-    cv::blur(img_in_raw, img_in_smooth, cv::Size(3, 3));
+    {
+      PROFILE_FUNCTION("Image blur");
+      cv::blur(img_in_raw, img_in_smooth, cv::Size(3, 3));
+    }
     if (img_in_smooth.rows == 0) {
       LOG(ERROR) << "Cannot load " << img_file_paths[it_img];
       return -1;
@@ -511,11 +518,15 @@ int main(int argc, char** argv) {
               << " -> " << imu_meas.back().time_stamp;
     }
 
-    if (!slave_img_file_paths.empty()) {
-      if (!slave_img_file_paths[it_img].empty()) {
-        cv::Mat slave_img_in;
-        slave_img_in = cv::imread(slave_img_file_paths[it_img], CV_LOAD_IMAGE_GRAYSCALE);
-        cv::blur(slave_img_in, slave_img_smooth, cv::Size(3, 3));
+    {
+      PROFILE_FUNCTION("Slave image read");
+      if (!slave_img_file_paths.empty()) {
+        if (!slave_img_file_paths[it_img].empty()) {
+          cv::Mat slave_img_in;
+          slave_img_in =
+              cv::imread(slave_img_file_paths[it_img], CV_LOAD_IMAGE_GRAYSCALE);
+          cv::blur(slave_img_in, slave_img_smooth, cv::Size(3, 3));
+        }
       }
     }
     // use optical flow  from the 1st frame
@@ -523,8 +534,11 @@ int main(int argc, char** argv) {
       CHECK(it_img >= 1);
       VLOG(1) << "pre_image_key_points.size(): " << pre_image_key_points.size();
       const int request_feat_num = FLAGS_max_num_per_grid * FLAGS_grid_row_num * FLAGS_grid_col_num;
-      feat_track_detector.build_img_pyramids(img_in_smooth,
-                                             XP::FeatureTrackDetector::BUILD_TO_CURR);
+      {
+        PROFILE_FUNCTION("Build image pyramids");
+        feat_track_detector.build_img_pyramids(
+            img_in_smooth, XP::FeatureTrackDetector::BUILD_TO_CURR);
+      }
       if (imu_meas.size() > 1) {
         // Here we simply the transformation chain to rotation only and assume zero translation
         cv::Matx33f old_R_new;
@@ -555,18 +569,19 @@ int main(int argc, char** argv) {
           VLOG(1) << "C_new_R_C_old = \n" << C_new_R_C_old;
           VLOG(1) << "ea =\n" << C_new_q_C_old.ToEulerRadians() * 180 / M_PI;
         }
-        feat_track_detector.optical_flow_and_detect(masks[0],
-                                                    pre_image_features,
-                                                    pre_image_key_points,
-                                                    request_feat_num,
-                                                    FLAGS_pyra_level,
-                                                    FLAGS_fast_thresh,
-                                                    &key_pnts,
-                                                    &orb_feat,
-                                                    cv::Vec2f(0, 0),  // shift init pixels
-                                                    &duo_calib_param.Camera.cv_camK_lr[0],
-                                                    &duo_calib_param.Camera.cv_dist_coeff_lr[0],
-                                                    &old_R_new);
+        feat_track_detector.optical_flow_and_detect(
+            masks[0],
+            pre_image_features,
+            pre_image_key_points,
+            request_feat_num,
+            FLAGS_pyra_level,
+            FLAGS_fast_thresh,
+            &key_pnts,
+            &orb_feat,
+            cv::Vec2f(0, 0),  // shift init pixels
+            &duo_calib_param.Camera.cv_camK_lr[0],
+            &duo_calib_param.Camera.cv_dist_coeff_lr[0],
+            &old_R_new);
       } else {
         feat_track_detector.optical_flow_and_detect(masks[0],
                                                     pre_image_features,

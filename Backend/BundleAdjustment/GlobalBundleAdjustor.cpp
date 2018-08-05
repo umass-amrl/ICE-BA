@@ -14,6 +14,7 @@
  * limitations under the License.
  *****************************************************************************/
 #include "stdafx.h"
+#include "Util/timer.h"
 #ifndef CFG_DEBUG
 //#define CFG_DEBUG
 #endif
@@ -509,6 +510,7 @@ void GlobalBundleAdjustor::PushCameraPriorMotion(const int iFrm, const int iKF, 
 }
 
 void GlobalBundleAdjustor::Run() {
+  PROFILE_FUNCTION(__PRETTY_FUNCTION__);
 #if 0
 //#if 1
   AssertConsistency();
@@ -1330,7 +1332,7 @@ void GlobalBundleAdjustor::ComputeErrorIMU(float *er, float *ep, float *ev,
                                            float *eba, float *ebw) {
   *er = *ep = *ev = *eba = *ebw = 0.0f;
   const int Nc = m_Cs.Size();
-  for (int ic1 = Nc - m_CsLM.Size(), ic2 = ic1 + 1, im1 = 0, im2 = 1; ic2 < Nc; 
+  for (int ic1 = Nc - m_CsLM.Size(), ic2 = ic1 + 1, im1 = 0, im2 = 1; ic2 < Nc;
        ic1 = ic2++, im1 = im2++) {
     if (m_KFs[ic2].m_us.Empty()) {
       continue;
@@ -1588,7 +1590,7 @@ void GlobalBundleAdjustor::SynchronizeData() {
       const KeyFrame &_KF = m_KFs[Z.m_iKF];
       for (int iz = Z.m_iz1; iz < Z.m_iz2; ++iz) {
         const int ix = IKF->m_zs[iz].m_ix;
-//#ifdef CFG_DEBUG 
+//#ifdef CFG_DEBUG
 #if 0
         if (iz == 0) {
           UT::PrintSeparator();

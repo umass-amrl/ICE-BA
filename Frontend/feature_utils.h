@@ -19,6 +19,8 @@
 #include "ORBextractor.h"
 #include "param.h"
 #include "cameras/PinholeCamera.hpp"  // for vio::cameras::CameraBase
+#include "Util/timer.h"
+
 #include <glog/logging.h>
 #include <opencv2/video/tracking.hpp>
 #include <brisk/internal/score-calculator.h>
@@ -272,6 +274,7 @@ class FeatureTrackDetector {
   };
 
   void build_img_pyramids(const cv::Mat& img_in_smooth, int build_type = BUILD_TO_CURR) {
+    PROFILE_FUNCTION(__PRETTY_FUNCTION__);
     if (build_type == BUILD_TO_CURR) {
       build_pyramids(img_in_smooth, kMaxPyraLevelOF,
                      &curr_img_pyramids_, curr_pyramids_buffer_.get());

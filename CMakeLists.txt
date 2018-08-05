@@ -80,6 +80,12 @@ if (CVD_FOUND)
 endif()
 
 # =========================
+# Util library
+# =========================
+include_directories(${PROJECT_SOURCE_DIR})
+add_library(UTIL SHARED Util/timer.cc)
+
+# =========================
 # Frontend
 # =========================
 add_subdirectory(Frontend)
