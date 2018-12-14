@@ -258,14 +258,10 @@ void LocalBundleAdjustor::GetCamera(FRM::Tag &T, Camera &C) {
 }
 
 void LocalBundleAdjustor::Run() {
-<<<<<<< HEAD
   if (kDebugState) {
     printf("LBA Run\n");
   }
   PROFILE_FUNCTION("Run LBA        ");
-//#ifdef CFG_DEBUG
-=======
->>>>>>> b004bb5afc0d554d49742aae8503d231213f7e6d
 #if 0
 //#if 1
   if (m_debug) {
@@ -2436,11 +2432,6 @@ void LocalBundleAdjustor::MarginalizeLocalFrame() {
       }
     }
     const Rigid3D &Tr = m_CsKF[iKFr];
-<<<<<<< HEAD
-    const float s2r = m_Zp.Pose::Valid() ? BA_VARIANCE_PRIOR_ROTATION : BA_VARIANCE_PRIOR_ROTATION_INITIAL;
-    m_Zp.Initialize(BA_WEIGHT_PRIOR_CAMERA_INITIAL, iKFr, Tr, s2r, m_ZpLF, true);
-
-=======
     //const Rigid3D &Tr = m_CsLF[iLF1].m_T;
     const float s2g = v ? BA_VARIANCE_PRIOR_GRAVITY_NEW : BA_VARIANCE_PRIOR_GRAVITY_FIRST;
     //m_ZpLF.m_Amm *= sp;
@@ -2464,8 +2455,7 @@ void LocalBundleAdjustor::MarginalizeLocalFrame() {
 #endif
     }
 #endif
-    
->>>>>>> b004bb5afc0d554d49742aae8503d231213f7e6d
+
     Camera C1;
     C1.m_T = Tr;
     Tr.GetPosition(C1.m_p);
@@ -2592,7 +2582,7 @@ void LocalBundleAdjustor::MarginalizeLocalFrame() {
     //m_Zp.GetReferencePose(m_CsKF[m_Zp.m_iKFr], &Tr, &TrI);
     //m_Zp.GetPose(TrI, Nk, &Tr1, &C1.m_T);
     m_Zp.m_Zps[Nk].GetInverse(Tr1);
-    const float s2d = UT::Inverse(BA_VARIANCE_PRIOR_DEPTH_NEW, BA_WEIGHT_PRIOR_CAMERA_INITIAL); 
+    const float s2d = UT::Inverse(BA_VARIANCE_PRIOR_DEPTH_NEW, BA_WEIGHT_PRIOR_CAMERA_INITIAL);
     const float epsd = UT::Inverse(BA_VARIANCE_MAX_DEPTH, BA_WEIGHT_FEATURE, eps);
     const float epsc[12] = {epsp, epsp, epsp, epsr, epsr, epsr,
                             epsp, epsp, epsp, epsr, epsr, epsr};
@@ -3243,155 +3233,6 @@ void LocalBundleAdjustor::PopLocalFrame() {
       FTR::Factor::FixSource::A3 &AzST = LF.m_AzsST[iz];
       AzST.m_add.MakeMinus();
 #ifdef CFG_DEBUG
-<<<<<<< HEAD
-      KF.m_MxsST[NST1].m_mdd.Invalidate();
-#endif
-      KeyFrame::SlidingTrack &ST = KF.m_STs[NST1];
-      ST.Set(ic2);
-      for (int _ic = ic1; _ic < ic2; ++_ic) {
-        const int _iLF = m_ic2LF[_ic];
-        LocalFrame &_LF = m_LFs[_iLF];
-        std::vector<int> &_ix2z = m_idxsListTmp[_ic - ic1];
-        if (_ix2z.empty()) {
-          MarkFeatureMeasurements(_LF, Z.m_iKF, _ix2z);
-        }
-        const int _iz = _ix2z[ix];
-        if (_iz == -1) {
-          continue;
-        }
-        ST.m_icMin = std::min(ST.m_icMin, _ic);
-#ifdef CFG_DEBUG
-        const LocalFrame::SlidingTrack &_ST = _LF.m_STs[_iz];
-        UT_ASSERT(_ST.m_ist2 == Nst);
-#endif
-        ++_LF.m_STs[_iz].m_ist2;
-      }
-    }
-    KF.m_ix2ST[Nx] = static_cast<int>(KF.m_STs.size());
-  }
-  m_CsLF[iLF] = ILF.m_C;
-#ifdef CFG_GROUND_TRUTH
-  if (m_CsGT) {
-    m_CsLFGT[iLF] = m_CsGT[LF.m_T.m_iFrm];
-  }
-#endif
-#ifdef CFG_INCREMENTAL_PCG
-  m_xcsLF[iLF].MakeZero();
-  m_xmsLF[iLF].MakeZero();
-#endif
-  IMU::Delta &D = m_DsLF[iLF];
-  if (nLFs2 > 1) {
-    const int _iLF = m_ic2LF[nLFs2 - 2];
-    const LocalFrame &_LF = m_LFs[_iLF];
-    const float _t = _LF.m_T.m_t;
-    //UT::DebugStart();
-    IMU::PreIntegrate(LF.m_us, _t, LF.m_T.m_t, m_CsLF[_iLF], &D, &m_work, true, &_LF.m_us.Back());
-    //UT::DebugStop();
-    if (nLFs2 > 2) {
-      const int __iLF = m_ic2LF[nLFs2 - 3];
-      IMU::Delta &_D = m_DsLF[_iLF];
-      IMU::PreIntegrate(_LF.m_us, m_LFs[__iLF].m_T.m_t, _t, m_CsLF[__iLF], &_D, &m_work, true,
-                        &_D.m_u1, &LF.m_us.Front());
-      m_ucsLF[_iLF] |= LBA_FLAG_FRAME_UPDATE_CAMERA;
-      m_ucmsLF[_iLF] |= LBA_FLAG_CAMERA_MOTION_UPDATE_ROTATION | LBA_FLAG_CAMERA_MOTION_UPDATE_POSITION |
-                        LBA_FLAG_CAMERA_MOTION_UPDATE_VELOCITY |
-                        LBA_FLAG_CAMERA_MOTION_UPDATE_BIAS_ACCELERATION | LBA_FLAG_CAMERA_MOTION_UPDATE_BIAS_GYROSCOPE;
-    }
-  } else {
-    D.Invalidate();
-  }
-#ifdef CFG_GROUND_TRUTH
-  if (m_CsGT) {
-    if (nLFs2 > 1) {
-      const int _iLF = m_ic2LF[nLFs2 - 2];
-      const LocalFrame &_LF = m_LFs[_iLF];
-      const float _t = _LF.m_T.m_t;
-      const Camera &_C = m_CsLFGT[_iLF];
-      IMU::PreIntegrate(LF.m_us, _t, LF.m_T.m_t, _C, &m_DsLFGT[iLF],
-                        &m_work, true, &_LF.m_us.Back());
-#ifdef LBA_DEBUG_GROUND_TRUTH_MEASUREMENT
-      D.DebugSetMeasurement(_C, m_CsLFGT[iLF], m_K.m_pu);
-      m_DsLFGT[iLF].DebugSetMeasurement(_C, m_CsLFGT[iLF], m_K.m_pu);
-#endif
-      if (nLFs2 > 2) {
-        const int __iLF = m_ic2LF[nLFs2 - 3];
-        IMU::Delta &_D = m_DsLFGT[_iLF];
-        IMU::PreIntegrate(_LF.m_us, m_LFs[__iLF].m_T.m_t, _t, m_CsLFGT[__iLF], &_D,
-                          &m_work, true, &_D.m_u1, &LF.m_us.Front());
-#ifdef LBA_DEBUG_GROUND_TRUTH_MEASUREMENT
-        m_DsLF[_iLF].DebugSetMeasurement(m_CsLFGT[__iLF], _C, m_K.m_pu);
-        _D.DebugSetMeasurement(m_CsLFGT[__iLF], _C, m_K.m_pu);
-#endif
-      }
-    } else {
-      m_DsLFGT[iLF] = D;
-    }
-  }
-  if (m_history >= 3) {
-    MarkFeatureMeasurementsUpdateDepth(LF, m_ucsKFGT, m_udsGT);
-  }
-#endif
-  if (LF.m_T.m_iFrm == 0) {
-    const LA::Vector3f s2r = LA::Vector3f::Get(BA_VARIANCE_FIX_ORIGIN_ROTATION_X,
-                                               BA_VARIANCE_FIX_ORIGIN_ROTATION_Y,
-                                               BA_VARIANCE_FIX_ORIGIN_ROTATION_Z);
-    const float s2p = BA_VARIANCE_FIX_ORIGIN_POSITION;
-    m_Zo.Set(BA_WEIGHT_FIX_ORIGIN, s2r, s2p, m_CsLF[iLF].m_T);
-    m_Ao.MakeZero();
-  }
-  m_AdsLF[iLF].MakeZero();
-  m_AfpsLF[iLF].MakeZero();
-  m_AfmsLF[iLF].MakeZero();
-  m_SAcusLF[iLF].MakeZero();
-  m_SMcusLF[iLF].MakeZero();
-  m_SAcmsLF[iLF].MakeZero();
-  m_usKF.Push(ILF.m_us);
-}
-
-void LocalBundleAdjustor::PopLocalFrame() {
-#ifdef LBA_DEBUG_EIGEN
-  m_ZpBkp = m_Zp;
-#endif
-  m_ts[TM_TEST_1].Start();
-  MarginalizeLocalFrame();
-  m_ts[TM_TEST_1].Stop();
-#ifdef LBA_DEBUG_EIGEN
-  DebugMarginalizeLocalFrame();
-#endif
-  const int nLFs = static_cast<int>(m_LFs.size());
-  const int STL = std::min(nLFs, LBA_MAX_SLIDING_TRACK_LENGTH);
-  const int iLF = m_ic2LF.front();
-  LocalFrame &LF = m_LFs[iLF];
-  const int NZ = static_cast<int>(LF.m_Zs.size());
-  for (int iZ = 0; iZ < NZ; ++iZ) {
-    const FRM::Measurement &Z = LF.m_Zs[iZ];
-    m_idxsListTmp.resize(STL);
-    for (int i = 0; i < STL; ++i) {
-      m_idxsListTmp[i].resize(0);
-    }
-    bool popST = false;
-    ubyte *uds = m_uds.data() + m_iKF2d[Z.m_iKF];
-    const ubyte pushFrm = m_ucsKF[Z.m_iKF] & LBA_FLAG_FRAME_PUSH_TRACK;
-    KeyFrame &KF = m_KFs[Z.m_iKF];
-    for (int iz = Z.m_iz1; iz < Z.m_iz2; ++iz) {
-      const int ix = LF.m_zs[iz].m_ix, iSTMin = KF.m_ix2ST[ix];
-      int icMin = -1;
-      for (int _ic = 1; _ic < STL && icMin == -1; ++_ic) {
-        std::vector<int> &_iz2x = m_idxsListTmp[_ic];
-        if (_iz2x.empty()) {
-          MarkFeatureMeasurements(m_LFs[m_ic2LF[_ic]], Z.m_iKF, _iz2x);
-        }
-        if (_iz2x[ix] != -1) {
-          icMin = _ic;
-        }
-      }
-      FTR::Factor::FixSource::A2 &Az = LF.m_Azs2[iz];
-      Az.m_add.MakeMinus();
-      FTR::Factor::FixSource::A3 &AzST = LF.m_AzsST[iz];
-      AzST.m_add.MakeMinus();
-#ifdef CFG_DEBUG
-=======
->>>>>>> b004bb5afc0d554d49742aae8503d231213f7e6d
       //UT_ASSERT(LF.m_Nsts[iz] == 1);
       UT_ASSERT(LF.m_STs[iz].m_ist1 == 0 && LF.m_STs[iz].m_ist2 == 1);
 #endif
@@ -3834,7 +3675,7 @@ void LocalBundleAdjustor::_PushLocalFrame(const InputLocalFrame &ILF) {
   }
 #endif
 #endif
-  if (LF.m_T.m_iFrm == 0) {    
+  if (LF.m_T.m_iFrm == 0) {
     const LA::Vector3f s2r = LA::Vector3f::Get(BA_VARIANCE_FIX_ORIGIN_ROTATION_X,
                                                BA_VARIANCE_FIX_ORIGIN_ROTATION_Y,
                                                BA_VARIANCE_FIX_ORIGIN_ROTATION_Z);

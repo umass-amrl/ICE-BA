@@ -636,12 +636,8 @@ void LocalBundleAdjustor::UpdateFactorsIMU() {
   //float dF;
   const ubyte ucFlag = LBA_FLAG_CAMERA_MOTION_UPDATE_ROTATION |
                        LBA_FLAG_CAMERA_MOTION_UPDATE_POSITION;
-<<<<<<< HEAD
-  const int nLFs = int(m_LFs.size());
   int const_frames = 0;
-=======
   const int nLFs = static_cast<int>(m_LFs.size());
->>>>>>> b004bb5afc0d554d49742aae8503d231213f7e6d
   for (int ic1 = 0, ic2 = 1; ic2 < nLFs; ic1 = ic2++) {
     const int iLF1 = m_ic2LF[ic1], iLF2 = m_ic2LF[ic2];
     const ubyte ucm1 = m_ucmsLF[iLF1], ucm2 = m_ucmsLF[iLF2];
@@ -1632,7 +1628,7 @@ bool LocalBundleAdjustor::SolveSchurComplementPCG() {
       e_A.block<pc, pc>(icp, _icp) = EigenMatrix6x6f(Acbs[ik]).cast<double>();
     }
     ib += Nk;
-    
+
     const Camera::EigenFactor e_Acm = m_SAcmsLF[iLF];
     e_A.block<pm, pm>(imp, imp) = EigenMatrix9x9f(m_Amus[ic]).cast<double>();
     e_A.block<pc, pm>(icp, imp) = e_Acm.m_Au.m_Acm.cast<double>();
@@ -2039,7 +2035,7 @@ bool LocalBundleAdjustor::SolveSchurComplementLast() {
   const float av = UT::Inverse(BA_VARIANCE_REGULARIZATION_VELOCITY, BA_WEIGHT_FEATURE);
   const float aba = UT::Inverse(BA_VARIANCE_REGULARIZATION_BIAS_ACCELERATION, BA_WEIGHT_FEATURE);
   const float abw = UT::Inverse(BA_VARIANCE_REGULARIZATION_BIAS_GYROSCOPE, BA_WEIGHT_FEATURE);
-  
+
   LA::AlignedMatrixXf A;
   LA::AlignedVectorXf b;
   //m_work.Resize(A.BindSize(pmcm, pmcm) + b.BindSize(pmcm));
@@ -2455,7 +2451,7 @@ void LocalBundleAdjustor::ApplyM(const LA::AlignedVectorXf &xs, LA::AlignedVecto
     const int Nbcm = ic + 1 == Nc ? 1 : 2;
     const int Nbmc = Nbcc - 1;
     const int Nbmm = Nbcm;
-    
+
     bc.Set(bcs[ic]);
     const LA::AlignedMatrix6x6f *MccsT = m_MccT[ic];
     for (int ib = 1; ib < Nbcc; ++ib) {
@@ -2988,7 +2984,7 @@ void LocalBundleAdjustor::EmbeddedPointIteration(const AlignedVector<Camera> &Cs
                                                  const std::vector<ubyte> &ucsKF,
                                                  const std::vector<ubyte> &uds,
                                                  std::vector<Depth::InverseGaussian> *ds) {
-                                                   
+
 //#ifdef CFG_DEBUG
 #if 0
   {

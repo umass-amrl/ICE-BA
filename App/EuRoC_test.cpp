@@ -653,18 +653,13 @@ int main(int argc, char** argv) {
     }
     pre_image_key_points = key_pnts;
     pre_image_features = orb_feat.clone();
-<<<<<<< HEAD
+
     if (FLAGS_visualize) {
       // show pose
       pose_viewer.displayTo("trajectory");
       cv::waitKey(1);
     }
 
-=======
-    // show pose
-    pose_viewer.displayTo("trajectory");
-    cv::waitKey(1);
->>>>>>> b004bb5afc0d554d49742aae8503d231213f7e6d
     prev_time_stamp = time_stamp;
   }
   std::string temp_file = "/tmp/" + std::to_string(offset_ts_ns) + ".txt";
