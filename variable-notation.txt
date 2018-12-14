@@ -1,0 +1,82 @@
+
+LA : Linear algebra library namespace
+LM: local map
+GM: global map
+ILF: Input local frame
+u: IMU measurements
+C: camera
+K: camera calibration
+uc: update camera flag, consisting of bitwise OR of LBA_FLAG_FRAME_*
+  e.g. m_ucsLF : update camera flags for local frame
+ucm: update camera motion flag, bitwise OR of LBA_FLAG_CAMERA_MOTION_*
+  e.g. m_ucmsLF :
+
+er : IMU delta error in rotation
+ev : IMU delta error in velocity
+ep : IMU delta error in position
+eba : ??? IMU delta error in bias for accelerometer
+ebw : ??? IMU delta error in bias for gyroscope
+
+ba : bias of accelerometer (IBA_datatype.h:49)
+bw : bias of gyroscope (IBA_datatype.h:50)
+
+m_SAcusLF
+
+m_*: member variable in class
+*s : plural e.g.
+nXs : number of Xs e.g. nLFs == number of local frames
+i* : iterator for e.g. iLF1  == iterator for local frame 1
+
+Examples:
+m_CsLF: member variable in class, for cameras in local frame.
+
+
+
+
+================================================================================
+NOTES
+================================================================================
+
+UpdateFactorsIMU (LocalBundleAdjustorGN.cpp:614-693) updates IMU factors, taking
+care to account for camera poses that are marked as static, and propagating
+errors and Jacobians from IMU between the cameras.
+The uc1, ucm1, ets. are bitwise flags indicating whether the camera pose is
+marked static, or which parts of them must be updated.
+
+For adding odometry (UpdateFactorsOdometry), you will have to similarly check
+for camera poses being marked static, etc. and propagate the Jacobian parts from
+odometry between the cameras.
+The core Jacobian and Cost computation from IMU data is performed by calling
+GetFactor on line LocalBundleAdjustorGN.cpp:649
+
+GetFactor (IMU.h:1097-1103) calls GetJacobian and GetCost
+
+See GetCost (IMU.h:1115) for the IMU cost computation: they are using a
+covariance matrix to weight the error term, just like equation 21 in my PDF.
+The loop from lines 1120 to 1127 is computing the total cost as
+error^T*\Sigma^-1*error. The weight matrix m_W already stores the pre-computed
+inverse covariance (explained below).
+The loops from 1 to 5 are since the covariance is block diagonal and decoupled
+for the 5 parts of the error (see below).
+
+IMU.h:1119 : they are doing a hacky way of referring to the elements in the
+Error class, which consists of 5 3D vectors (in order): error in rotation,
+velocity, position, accelerometer bias, gyroscope bias
+
+The IMU motion model weights (inverse covariances) are computed and stored in
+m_W. See PreIntegrate in IMU.cpp, for how the the covariance P is computed based
+on IMU measurement integration, analogous to how the odometry covariances are
+computed in my pdf, eq. 14-18. The odometry "integration" part analogue are
+equations 7-9. The inverse covariance is then set to m_W by inverting  P (see
+IMU.h:302-322 for inversion, IMU.cpp:935 for calling the inversion with the
+covariance matrix P)
+
+
+IMU::Delta::GetErrorJacobian, IMU.h:889-948
+What are the variables in:
+const LA::AlignedVector3f drbw = m_Jrbw * (C1.m_bw - m_bw);
+IMU
+Camera.m_bw : bias of gyroscope Camera.h:1255
+IMU::Delta::m_ba, m_bw ??? IMU.h:1180
+Jrbw : Jacobian of rotation w.r.t bias of rotation?
+Jrr1 : Jacobian of rotation w.r.t rotation of previous pose?
