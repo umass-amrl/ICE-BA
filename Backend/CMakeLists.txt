@@ -199,6 +199,7 @@ set(HEADERS_UTILITY
 set(SOURCES_UTILITY
  Utility/Utility.cpp
  Utility/MultiThread.cpp
+ Utility/DebugConfig.cpp
 )
 
 # =========================

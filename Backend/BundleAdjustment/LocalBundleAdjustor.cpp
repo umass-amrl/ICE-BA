@@ -22,6 +22,7 @@
 #include "IBA_internal.h"
 #include "Vector12.h"
 #include "Util/timer.h"
+#include "DebugConfig.h"
 
 #ifdef CFG_DEBUG
 #ifdef CFG_DEBUG_EIGEN
@@ -375,6 +376,9 @@ void LocalBundleAdjustor::GetCamera(FRM::Tag &T, Camera &C) {
 }
 
 void LocalBundleAdjustor::Run() {
+  if (kDebugState) {
+    printf("LBA Run\n");
+  }
   PROFILE_FUNCTION("Run LBA        ");
 //#ifdef CFG_DEBUG
 #if 0

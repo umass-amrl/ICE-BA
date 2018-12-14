@@ -22,6 +22,7 @@
 #if defined CFG_DEBUG && defined CFG_GROUND_TRUTH
 //#define LBA_DEBUG_GROUND_TRUTH_MEASUREMENT
 #endif
+#include "DebugConfig.h"
 
 void LocalBundleAdjustor::SolveDogLeg() {
   if (m_x2GN <= m_delta2 || BA_DL_MAX_ITERATIONS == 0) {
@@ -504,6 +505,9 @@ bool LocalBundleAdjustor::UpdateStatesPropose() {
   const LA::Vector6f *xcsGN = (LA::Vector6f *) m_xsGN.Data();
   const LA::Vector9f *xmsGN = (LA::Vector9f *) (xcsGN + Nc);
 #endif
+  int no_rot = 0;
+  int no_pos = 0;
+  int no_update = 0;
   for (int ic = 0; ic < Nc; ++ic) {
     const int iLF = m_ic2LF[ic];
     Camera &C = m_CsLF[iLF];
@@ -530,11 +534,16 @@ bool LocalBundleAdjustor::UpdateStatesPropose() {
       ucm |= LBA_FLAG_CAMERA_MOTION_UPDATE_ROTATION;
     } else {
       ucm &= ~LBA_FLAG_CAMERA_MOTION_UPDATE_ROTATION;
+      no_rot++;
     }
     if (up) {
       ucm |= LBA_FLAG_CAMERA_MOTION_UPDATE_POSITION;
     } else {
       ucm &= ~LBA_FLAG_CAMERA_MOTION_UPDATE_POSITION;
+      no_pos++;
+    }
+    if (ucm == 0) {
+      no_update++;
     }
     const LA::Vector9f &xmDL = xmsDL[ic];
 #ifdef CFG_INCREMENTAL_PCG
@@ -595,7 +604,12 @@ bool LocalBundleAdjustor::UpdateStatesPropose() {
     }
 #endif
   }
-
+  if (kDebugState) {
+    printf("Updated states no rotation: %d no translation: %d no update: %d\n",
+           no_rot,
+           no_pos,
+           no_update);
+  }
 #ifdef CFG_VERBOSE
   int SNx = 0, SNX = 0, SNu = 0, SNU = 0;
 #endif
@@ -701,6 +715,9 @@ bool LocalBundleAdjustor::UpdateStatesDecide() {
     m_xcsLF.Swap(m_xcsLFBkp);
     m_xmsLF.Swap(m_xmsLFBkp);
 #endif
+    if (kDebugState) {
+      printf("Disabling %3d frames\n", nLFs);
+    }
     for (int iLF = 0; iLF < nLFs; ++iLF) {
       m_ucsLF[iLF] &= ~LBA_FLAG_FRAME_UPDATE_CAMERA;
       m_ucmsLF[iLF] = LBA_FLAG_CAMERA_MOTION_DEFAULT;

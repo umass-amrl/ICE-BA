@@ -33,6 +33,7 @@
 #if defined CFG_DEBUG && defined CFG_GROUND_TRUTH
 //#define LBA_DEBUG_GROUND_TRUTH_STATE
 #endif
+#include "DebugConfig.h"
 
 void LocalBundleAdjustor::UpdateFactors() {
 #ifdef CFG_VERBOSE
@@ -622,10 +623,12 @@ void LocalBundleAdjustor::UpdateFactorsIMU() {
   const ubyte ucFlag = LBA_FLAG_CAMERA_MOTION_UPDATE_ROTATION |
                        LBA_FLAG_CAMERA_MOTION_UPDATE_POSITION;
   const int nLFs = int(m_LFs.size());
+  int const_frames = 0;
   for (int ic1 = 0, ic2 = 1; ic2 < nLFs; ic1 = ic2++) {
     const int iLF1 = m_ic2LF[ic1], iLF2 = m_ic2LF[ic2];
     const ubyte ucm1 = m_ucmsLF[iLF1], ucm2 = m_ucmsLF[iLF2];
     if (!ucm1 && !ucm2) {
+      ++const_frames;
       continue;
     }
     IMU::Delta::Factor &A = m_AdsLF[iLF2];
@@ -690,6 +693,9 @@ void LocalBundleAdjustor::UpdateFactorsIMU() {
     UT::Print("  Delta = %d / %d = %.2f%%\n", SN, N, UT::Percentage(SN, N));
   }
 #endif
+  if (kDebugState) {
+    printf("%3d / %3d const IMU frames\n", const_frames, nLFs);
+  }
 }
 
 void LocalBundleAdjustor::UpdateFactorsFixOrigin() {
