@@ -815,7 +815,7 @@ class Delta {
                                               const Point3D &pu) const {
     return GetPositionState(C1, C2, pu) - GetPositionMeasurement(C1);
   }
-  
+
 #ifdef CFG_DEBUG
   inline void DebugSetMeasurement(const Camera &C1, const Camera &C2, const Point3D &pu, const float eps) {
     const LA::AlignedVector3f dba = C1.m_ba - m_ba;
@@ -841,7 +841,7 @@ class Delta {
   }
   static inline void GetError(const ErrorJacobian &Je, const LA::AlignedVector3f *xp1,
                               const LA::AlignedVector3f *xr1, const LA::AlignedVector3f *xv1,
-                              const LA::AlignedVector3f *xba1, const LA::AlignedVector3f *xbw1, 
+                              const LA::AlignedVector3f *xba1, const LA::AlignedVector3f *xbw1,
                               const LA::AlignedVector3f *xp2, const LA::AlignedVector3f *xr2,
                               const LA::AlignedVector3f *xv2, const LA::AlignedVector3f *xba2,
                               const LA::AlignedVector3f *xbw2, Error &e) {
@@ -983,11 +983,21 @@ class Delta {
   inline void GetErrorJacobian(const Camera &C1, const Camera &C2, const Point3D &pu,
                                Error *e, Jacobian::Global *J, const float eps) const {
 #ifdef CFG_IMU_FULL_COVARIANCE
+    // dR = relative rotation between successive camera frames C1, C2.
     const Rotation3D dR = GetRotationState(C1, C2);
+    // drbw = relative rotation due to gyroscope bias drift, in angle-axis form.
     const LA::AlignedVector3f drbw = m_Jrbw * (C1.m_bw - m_bw);
+    // eR = error in rotation = IMU observed rotation - bias drift - camera
+    //    rotation.
     const Rotation3D eR = m_RT / Rotation3D(drbw, eps) / dR;
+    // Get the error in rotation in scaled angle-axis form.
     eR.GetRodrigues(e->m_er, eps);
+    // Get the 3x3 matrix for the Jacobian of the rotation (in angle-axis form).
+    // Set its inverse to the component of the Jacobian w.r.t. rotation.
     Rotation3D::GetRodriguesJacobianInverse(e->m_er, J->m_Jrr1, eps);
+    // Get the 3x3 matrix for the Jacobian of the rotation (in angle-axis form)
+    //   of the relative rotation due to gyroscope drift.
+    // Set it to the component of the Jacobian w.r.t. gyroscope bias.
     Rotation3D::GetRodriguesJacobian(drbw.GetMinus(), J->m_Jrbw1, eps);
     J->m_Jrr1.MakeMinus();
     J->m_Jrbw1 = J->m_Jrr1 * m_RT * J->m_Jrbw1 * m_Jrbw;
@@ -1248,7 +1258,7 @@ class Delta {
                            const Point3D &pu, const LA::AlignedVector3f *xp1,
                            const LA::AlignedVector3f *xr1, const LA::AlignedVector3f *xv1,
                            const LA::AlignedVector3f *xba1, const LA::AlignedVector3f *xbw1,
-                           const LA::AlignedVector3f *xp2, const LA::AlignedVector3f *xr2, 
+                           const LA::AlignedVector3f *xp2, const LA::AlignedVector3f *xr2,
                            const LA::AlignedVector3f *xv2, const LA::AlignedVector3f *xba2,
                            const LA::AlignedVector3f *xbw2, Reduction &Ra, Reduction &Rp,
                            const float eps) const {

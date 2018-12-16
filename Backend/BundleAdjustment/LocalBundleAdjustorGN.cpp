@@ -707,7 +707,7 @@ void LocalBundleAdjustor::UpdateFactorsIMU() {
     UT::Print("  Delta = %d / %d = %.2f%%\n", SN, N, UT::Percentage(SN, N));
   }
 #endif
-  if (kDebugState) {
+  if (false && kDebugState) {
     printf("%3d / %3d const IMU frames\n", const_frames, nLFs);
   }
 }

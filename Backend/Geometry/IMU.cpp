@@ -745,7 +745,8 @@ void PreIntegrate(const AlignedVector<Measurement> &us, const float t1, const fl
 
 void PreIntegrate(const Measurement *us, const int N, const float t1, const float t2,
                   const Camera &C1, Delta *D, AlignedVector<float> *work, const bool jac,
-                  const Measurement *u1, const Measurement *u2, const float eps) {
+                  const Measurement *u1, const Measurement *u2, const float eps)
+{
 #ifdef CFG_DEBUG
   if (u1) {
     UT_ASSERT(u1->Valid() && u1->t() <= t1);
@@ -1229,7 +1230,7 @@ void Delta::EigenGetErrorJacobian(const Camera &C1, const Camera &C2, const Poin
   const EigenVector3f e_er2bw1 = EigenVector3f(e_er1 + e_Jrbw1 * e_dbw1);
   UT::AssertReduction(e_er1, e_er2bw1, 1, "erbw1");
 #endif
-  
+
   e_v12 = EigenVector3f(e_v2GT - e_v1GT);
   if (!IMU_GRAVITY_EXCLUDED)
     e_v12.z() += IMU_GRAVITY_MAGNITUDE * m_Tvg;

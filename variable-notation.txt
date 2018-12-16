@@ -72,7 +72,9 @@ IMU.h:302-322 for inversion, IMU.cpp:935 for calling the inversion with the
 covariance matrix P)
 
 
-IMU::Delta::GetErrorJacobian, IMU.h:889-948
+IMU::Delta::GetErrorJacobian, IMU.h:983
+m_RT is the relative rotation for the IMU term from the previous pose to the 
+next.
 What are the variables in:
 const LA::AlignedVector3f drbw = m_Jrbw * (C1.m_bw - m_bw);
 IMU
@@ -80,3 +82,21 @@ Camera.m_bw : bias of gyroscope Camera.h:1255
 IMU::Delta::m_ba, m_bw ??? IMU.h:1180
 Jrbw : Jacobian of rotation w.r.t bias of rotation?
 Jrr1 : Jacobian of rotation w.r.t rotation of previous pose?
+
+
+================================================================================
+The IMU cost and Jacobian affects:
+1 Pairs of Camera translations and rotations
+2 Pairs of Camera rotations
+3 Gyroscope bias and rotations and translations
+4 Accelerometer bias  and rotations and translations
+
+Odometry will only affect:
+1 Camera translations
+2 Camera rotations
+
+Thus, a simpler problem to check is:
+1. How to add terms to the Jacobian and cost to affect camera translation
+2. How to add terms to the Jacobian and cost to affect camera translation and 
+rotation
+

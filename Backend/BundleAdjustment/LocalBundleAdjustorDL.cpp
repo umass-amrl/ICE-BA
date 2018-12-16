@@ -610,7 +610,7 @@ bool LocalBundleAdjustor::UpdateStatesPropose() {
     }
 #endif
   }
-  if (kDebugState) {
+  if (false && kDebugState) {
     printf("Updated states no rotation: %d no translation: %d no update: %d\n",
            no_rot,
            no_pos,
@@ -731,7 +731,7 @@ bool LocalBundleAdjustor::UpdateStatesDecide() {
     m_xcsLF.Swap(m_xcsLFBkp);
     m_xmsLF.Swap(m_xmsLFBkp);
 #endif
-    if (kDebugState) {
+    if (false && kDebugState) {
       printf("Disabling %3d frames\n", nLFs);
     }
     for (int iLF = 0; iLF < nLFs; ++iLF) {
