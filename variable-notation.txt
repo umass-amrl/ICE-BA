@@ -73,7 +73,7 @@ covariance matrix P)
 
 
 IMU::Delta::GetErrorJacobian, IMU.h:983
-m_RT is the relative rotation for the IMU term from the previous pose to the 
+m_RT is the relative rotation for the IMU term from the previous pose to the
 next.
 What are the variables in:
 const LA::AlignedVector3f drbw = m_Jrbw * (C1.m_bw - m_bw);
@@ -85,11 +85,42 @@ Jrr1 : Jacobian of rotation w.r.t rotation of previous pose?
 
 
 ================================================================================
+Propagation of Jacobian from IMU factors to Camera poses
+
+LocalBundleAdjustor::Run() calls UpdateFactors()
+
+UpdateFactors() calls UpdateFactorsIMU()
+
+UpdateFactorsIMU() calls IMU::Delta::GetFactor()
+
+IMU::Delta::GetFactor() calls IMU::Delta::GetErrorJacobian() (INU.h:983)
+
+In UpdateFactorsIMU(), the IMU::Delta::Factor is stored in the local var A,
+which is a reference to an element of m_AdsLF.
+***Q: Are m_AdsLF only used for temporary IMU factor computation, or are they
+also used directly during gradient descent / optimization?
+Uses of m_AdsLF (** == relevant for optimization):
+  ** UpdateFactorsIMU
+  ** ComputeReductionIMU
+  Reset
+  PopLocalFrame / PushLocalFrame
+  SaveB / LoadB
+  ComputeErrorStatisticIMU / AssertConsistency
+
+Several local Camera::Factor::Unitary::CC and Camera::Factor::Unitary vars are
+updated with the IMU factor values.
+
+Potential candidates for how the IMU term values are passed on:
+m_SAcusLF
+m_SAcmsLF
+
+================================================================================
 The IMU cost and Jacobian affects:
 1 Pairs of Camera translations and rotations
 2 Pairs of Camera rotations
 3 Gyroscope bias and rotations and translations
 4 Accelerometer bias  and rotations and translations
+5 Velocities
 
 Odometry will only affect:
 1 Camera translations
@@ -97,6 +128,6 @@ Odometry will only affect:
 
 Thus, a simpler problem to check is:
 1. How to add terms to the Jacobian and cost to affect camera translation
-2. How to add terms to the Jacobian and cost to affect camera translation and 
+2. How to add terms to the Jacobian and cost to affect camera translation and
 rotation
 
