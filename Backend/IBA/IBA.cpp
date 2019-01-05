@@ -2269,7 +2269,7 @@ static inline bool SaveIndexes(const std::string fileName, const std::vector<int
     fprintf(fp, "%d\n", idxs[i]);
   }
   fclose(fp);
-  return true; 
+  return true;
 }
 
 bool SaveKeyFrames(const std::string fileName, const std::vector<int> &iFrms) {

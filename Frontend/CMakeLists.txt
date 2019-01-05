@@ -1,10 +1,14 @@
 cmake_minimum_required(VERSION 2.8.11)
 project(euroc_tracking)
 
+find_package(OpenCV)
+message(STATUS "OpenCV_LIBS = ${OpenCV_LIBS}")
 list(FIND OpenCV_LIBS "opencv_viz" find_index)
 if (find_index GREATER -1)
     message(STATUS "Found opencv_viz")
     add_definitions(-DHAS_OPENCV_VIZ)
+else()
+  message(STATUS "Could NOT find opencv_viz")
 endif()
 
 LIST(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../cmake)

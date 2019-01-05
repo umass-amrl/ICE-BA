@@ -45,3 +45,17 @@ if (CVD_FOUND)
      IBAVis
  )
 endif (CVD_FOUND)
+
+# =========================
+# Unit testing executable
+# =========================
+add_executable(run_unit_tests
+    ../App/testing.cpp
+)
+target_link_libraries(run_unit_tests
+    IBA
+    OF
+    UTIL
+    gtest
+    pthread
+)
